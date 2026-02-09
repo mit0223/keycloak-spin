@@ -1,0 +1,18 @@
+spin_manifest_version = 2
+
+[application]
+name = "admin-api"
+version = "0.1.0"
+description = "Keycloak admin REST API (WASM)"
+
+[[trigger.http]]
+route = "/..."
+component = "admin-api"
+
+[component.admin-api]
+source = "target/wasm32-wasip2/release/admin_api.wasm"
+allowed_outbound_hosts = []
+sqlite_databases = ["default"]
+
+[component.admin-api.build]
+command = "cargo build --target wasm32-wasip2 --release"

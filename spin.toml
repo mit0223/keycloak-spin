@@ -1,0 +1,30 @@
+spin_manifest_version = 2
+
+[application]
+name = "keycloak-spin"
+version = "0.1.0"
+description = "Keycloak on Spin (WASI P2)"
+
+[[trigger.http]]
+route = "/db/init"
+component = "db-init"
+
+[[trigger.http]]
+route = "/admin/..."
+component = "admin-api"
+
+[component.db-init]
+source = "db/init/target/wasm32-wasip2/release/db_init.wasm"
+allowed_outbound_hosts = []
+sqlite_databases = ["default"]
+files = ["db/init/sql/schema.sql"]
+
+[component.db-init.variables]
+db_init_sql_files = "db/init/sql/schema.sql"
+db_init_sql = ""
+db_init_version = "1"
+
+[component.admin-api]
+source = "api/target/wasm32-wasip2/release/admin_api.wasm"
+allowed_outbound_hosts = []
+sqlite_databases = ["default"]

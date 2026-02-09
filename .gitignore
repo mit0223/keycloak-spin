@@ -1,0 +1,10 @@
+/.spin
+target
+/node_modules
+/web/node_modules
+/web/dist
+/docs/node_modules
+/docs/build
+/docs/.docusaurus
+/var
+*.log

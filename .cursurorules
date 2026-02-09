@@ -1,0 +1,31 @@
+
+# プロジェクトの掟 (Fermyon Spin + Wasm)
+
+## 技術スタック
+- **Backend:** Rust (Fermyon Spin SDK v2 / WASI Preview 2)
+- **Frontend:** React (Vite)
+- **DB:** Managed SQLite (libSQL / Turso)
+- **Registry:** GHCR (OCI Image)
+- **Runtime Interface:** WASI Preview 2
+- ** Documentation:** Docusaurus
+
+## アーキテクチャの掟
+- API のエンドポイントは必ず `/api/` から始めること。
+- フロントエンドは `static-fileserver` コンポーネントを使用し、相対パスで API を叩くこと。
+- データベース操作は `spin_sdk::sqlite` を使用し、`spin.toml` に `sqlite_databases = ["default"]` があることを前提とする。
+- OIDC 実装には `openidconnect` クレートを使用し、HTTP 通信は `spin_sdk::http` にアダプトさせること。
+- JWT の検証は `jsonwebtoken` クレートを使用すること。
+- 認証情報は環境変数（`spin.toml` の `[variables]`）から取得する設計にすること。
+- 本体、プラグイン、拡張機能は Rust 記述の Wasm をビルドし、 GHCR 経由で配布すること
+- ローカルで spin を使ってテストできるようにすること
+- マニュアルを docusaurus で Github Pages 経由で公開すること
+- マニュアルは docs ディレクトリ配下に記述し、簡単に docusaurus でプレビューできること
+- マニュアルは日本語で提供すること
+
+## コーディングスタイル
+- Rust のエラー処理は `anyhow::Result` を使用すること。
+- 非同期処理（Async）が必要な場合は、WASI P2 の制限を考慮すること。
+- React のコードは、パフォーマンスよりも可読性と TypeScript の型安全を優先すること。
+- 複数の WASM を1個のリポジトリで管理するモノリポ構成とすること
+- 各 WASM にはセマンティックバージョニングで個別にバージョンを持たせるため、 git のタグでの管理は行わないこと
+- セマンティックバージョニングでRC版には -rc.番号というPostfixを付与すること(ex. 1.0.1-rc.1)
