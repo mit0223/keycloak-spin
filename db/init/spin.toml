@@ -1,0 +1,19 @@
+spin_manifest_version = 2
+
+[application]
+name = "db-init"
+version = "0.1.0"
+description = "SQLite initializer component"
+
+[[trigger.http]]
+route = "/db/init"
+component = "db-init"
+
+[component.db-init]
+source = "target/wasm32-wasip2/release/db_init.wasm"
+allowed_outbound_hosts = []
+sqlite_databases = ["default"]
+files = ["sql/schema.sql"]
+
+[component.db-init.build]
+command = "cargo build --target wasm32-wasip2 --release"

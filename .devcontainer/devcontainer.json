@@ -1,0 +1,14 @@
+{
+  "name": "Spin Wasm Development",
+  "image": "mcr.microsoft.com/devcontainers/rust:1",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:1": {}
+  },
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": ["fermyon.wasm-vscode", "rust-lang.rust-analyzer"]
+    }
+  },
+  "remoteUser": "vscode"
+}
