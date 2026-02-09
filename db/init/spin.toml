@@ -5,6 +5,7 @@ name = "db-init"
 version = "0.1.0"
 description = "SQLite initializer component"
 
+
 [[trigger.http]]
 route = "/db/init"
 component = "db-init"
@@ -14,6 +15,11 @@ source = "target/wasm32-wasip2/release/db_init.wasm"
 allowed_outbound_hosts = []
 sqlite_databases = ["default"]
 files = ["sql/schema.sql"]
+
+[component.db-init.variables]
+db_init_sql_files = "sql/schema.sql"
+db_init_sql = ""
+db_init_version = "1"
 
 [component.db-init.build]
 command = "cargo build --target wasm32-wasip2 --release"

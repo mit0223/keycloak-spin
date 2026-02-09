@@ -1,9 +1,9 @@
 use anyhow::{anyhow, Context, Result};
 use spin_sdk::{
-    config,
     http::{Request, Response},
     http_component,
     sqlite::{Connection, Value},
+    variables,
 };
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -14,7 +14,7 @@ const DEFAULT_VERSION: &str = "1";
 
 #[http_component]
 fn handle_db_init(req: Request) -> Result<Response> {
-    if req.method().as_str() != "POST" {
+    if req.method() != &spin_sdk::http::Method::Post {
         return plain_response(405, "method not allowed");
     }
 
@@ -32,7 +32,7 @@ fn handle_db_init(req: Request) -> Result<Response> {
             apply_sql(&conn, &sql).with_context(|| format!("apply sql file: {path}"))?;
         }
 
-        if let Ok(inline_sql) = config::get("db_init_sql") {
+        if let Some(inline_sql) = get_variable("db_init_sql")? {
             if !inline_sql.trim().is_empty() {
                 apply_sql(&conn, &inline_sql).context("apply inline sql")?;
             }
@@ -54,14 +54,14 @@ fn handle_db_init(req: Request) -> Result<Response> {
 }
 
 fn resolve_sql_files() -> Vec<String> {
-    match config::get("db_init_sql_files") {
-        Ok(value) => value
+    match get_variable("db_init_sql_files") {
+        Ok(Some(value)) => value
             .split(',')
             .map(|entry| entry.trim())
             .filter(|entry| !entry.is_empty())
             .map(String::from)
             .collect(),
-        Err(_) => DEFAULT_SQL_FILES.iter().map(|path| path.to_string()).collect(),
+        _ => DEFAULT_SQL_FILES.iter().map(|path| path.to_string()).collect(),
     }
 }
 
@@ -95,22 +95,25 @@ fn apply_sql(conn: &Connection, sql: &str) -> Result<()> {
 
 fn is_initialized(conn: &Connection) -> Result<bool> {
     let rows = conn
-        .query(
+        .execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND name=?1",
             &[Value::Text(MARKER_TABLE.to_string())],
         )
         .context("check marker table")?;
 
     for row in rows.rows() {
-        let _: String = row.get("name").context("read marker table name")?;
-        return Ok(true);
+        if row.get::<&str>("name").is_some() {
+            return Ok(true);
+        }
     }
 
     Ok(false)
 }
 
 fn mark_initialized(conn: &Connection) -> Result<()> {
-    let version = config::get("db_init_version").unwrap_or_else(|_| DEFAULT_VERSION.to_string());
+    let version = get_variable("db_init_version")?
+        .filter(|value| !value.is_empty())
+        .unwrap_or_else(|| DEFAULT_VERSION.to_string());
 
     conn.execute(
         "CREATE TABLE IF NOT EXISTS kc_schema_version (id INTEGER PRIMARY KEY, version TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT (datetime('now')))",
@@ -128,9 +131,18 @@ fn mark_initialized(conn: &Connection) -> Result<()> {
 }
 
 fn plain_response(status: u16, body: &str) -> Result<Response> {
-    Response::builder()
+    let mut builder = Response::builder();
+    Ok(builder
         .status(status)
         .header("content-type", "text/plain; charset=utf-8")
         .body(body.as_bytes().to_vec())
-        .map_err(|err| anyhow!("build response: {err}"))
+        .build())
+}
+
+fn get_variable(name: &str) -> Result<Option<String>> {
+    match variables::get(name) {
+        Ok(value) => Ok(Some(value)),
+        Err(variables::Error::Undefined(_)) => Ok(None),
+        Err(err) => Err(anyhow!("read variable {name}: {err}")),
+    }
 }

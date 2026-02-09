@@ -1,5 +1,5 @@
 /.spin
-/target
+target
 /node_modules
 /web/node_modules
 /web/dist

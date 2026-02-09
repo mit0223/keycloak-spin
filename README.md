@@ -45,8 +45,11 @@ npm run build
 4. Spin 起動
 
 ```sh
-spin up
+spin up -f spin.toml
 ```
+
+`spin.toml` は db/init と api の両コンポーネントを起動します。
+ルートの `spin.toml` では、`/db/init` を db 初期化用 WASM に、`/admin/...` を管理 API WASM にルーティングしています。
 
 管理 UI: `http://localhost:3000/admin/`
 
@@ -54,3 +57,17 @@ spin up
 
 `/api/admin` のエンドポイントは `x-admin-token` ヘッダーで保護されています。
 デフォルトは `dev-admin-token` です。 `spin.toml` の `admin_api_token` を上書きしてください。
+
+簡易的な CRUD テストは次で実行できます。
+
+```sh
+./api/test-realms.sh
+```
+
+追加の管理 API テスト:
+
+```sh
+./api/test-auth.sh
+./api/test-client-scopes.sh
+./api/test-groups.sh
+```

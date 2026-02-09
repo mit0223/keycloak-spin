@@ -41,3 +41,18 @@ mvn -f /workspaces/keycloak-spin/db/tools/liquibase-exporter/pom.xml \
 	-Dexec.mainClass=com.keycloakspin.db.HibernateSchemaExport \
 	-Dexec.args="--output /workspaces/keycloak-spin/db/init/sql/schema.sql"
 ```
+
+## Spin 実行テスト
+
+Spin で WASM を起動し、SQLite の DB が作成されることを確認します。
+
+```sh
+# リポジトリのルートで実行
+bash db/init/test-spin.sh
+```
+
+テスト後に生成物を消す場合は、以下を実行します。
+
+```sh
+rm -rf db/init/.spin db/init/target db/init/Cargo.lock
+```
